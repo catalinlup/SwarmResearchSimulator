@@ -1,7 +1,5 @@
 import numpy as np
 
-from entities.Agent import Agent
-
 
 class Projectile:
   """
@@ -25,8 +23,23 @@ class Projectile:
     self.lifetime_ticks = lifetime_ticks
     self.active = True
 
+
+  def _apply_velocity(self, target_velocity: np.ndarray):
+    """
+    Applies velocity to projectile
+    """
+
+    self.velocity = target_velocity
+
   
-  def process(self, current_tick: int, delta_time: float):
+  def _compute_velocity(self, current_tick: int, delta_time: float, targets: list):
+    """
+    Implement this method to control the velocity the projectile has at every moment.
+    """
+    pass
+
+  
+  def process(self, current_tick: int, delta_time: float, targets: list):
     """
     Processes the state of the projectile each tick.
     """
@@ -34,6 +47,7 @@ class Projectile:
       self.active = False
       return
     
+    self._compute_velocity(current_tick, delta_time, targets)
     self.position += self.velocity * delta_time
   
   def get_position(self) -> np.ndarray:
@@ -49,7 +63,7 @@ class Projectile:
     return self.velocity
 
   
-  def is_in_collision_with(self, agent: Agent) -> bool:
+  def is_in_collision_with(self, agent) -> bool:
     """
     Returns true if the projectile is in collision with the provided agent, false otherwise
     """
@@ -64,6 +78,18 @@ class Projectile:
     Returns true if the projectile is active, false otherwise.
     """
     return self.active
+
+  def to_summary(self) -> dict:
+    """
+    Returns the summary of a projectile.
+    """
+
+    return {
+      'position': list(self.position),
+      'velocity': list(self.velocity),
+      'init_tick': self.init_tick,
+      'lifetime_ticks': self.lifetime_ticks
+    }
 
 
   

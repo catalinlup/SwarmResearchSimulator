@@ -24,3 +24,14 @@ class MapStructure:
   
   def get_danger_area_width(self):
     return self.danger_area_width
+
+  def to_summary(self) -> dict:
+    """
+    Returns a summary of the map structure as a python dictionary
+    """
+
+    return {
+      'map_height': self.map_height,
+      'safe_area_width': self.safe_area_width,
+      'danger_area_width': self.danger_area_width
+    }

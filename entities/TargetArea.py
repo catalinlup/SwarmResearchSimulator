@@ -1,8 +1,5 @@
-from turtle import distance, pos
 
 import numpy as np
-
-from entities.Agent import Agent
 
 
 class TargetArea:
@@ -24,7 +21,7 @@ class TargetArea:
   def get_size(self):
     return self.size
 
-  def contains_agent(self, agent: Agent) -> bool:
+  def contains_agent(self, agent) -> bool:
     """
     Returns true if the target area contains the provided agent, false otherwise.
     """
@@ -32,4 +29,14 @@ class TargetArea:
 
     return distance_between_centers <= self.size - agent.get_size()
   
-  
+
+  def to_summary(self) -> dict:
+    """
+    Returns a python dictionary representation of the target area.
+    """
+    return {
+      'position': list(self.position),
+      'size': self.size
+    }
+
+

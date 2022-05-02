@@ -1,7 +1,11 @@
 
+from typing import List
+
 import numpy as np
 
-from TargetArea import TargetArea
+from entities.Obstacle import Obstacle
+from entities.Projectile import Projectile
+from entities.TargetArea import TargetArea
 
 
 class AgentPerception:
@@ -9,20 +13,35 @@ class AgentPerception:
   Contains all of the objects that the agent is able to perceive.
   """
 
-  def __init__(self, obstacles: list, swarm_agents: list, target_area: TargetArea) -> None:
+  def __init__(self, obstacles: list, swarm_agents: list, target_area: TargetArea, projectiles: list) -> None:
     """
     Initializes an object storing the agents perception.
     """
     self.obstacles: list = obstacles
     self.swarm_agents: list = swarm_agents
     self.target_area: TargetArea = target_area
+    self.projectiles: list = projectiles
+
+  
+  def get_obstacles(self) -> List[Obstacle]:
+    return self.obstacles
+  
+  def get_swarm_agents(self) -> list:
+    return self.swarm_agents
+  
+  def get_target_area(self) -> TargetArea:
+    return self.target_area
+  
+  def get_projectiles(self) -> List[Projectile]:
+    return self.projectiles
+
 
 class Agent:
   """
   Abstract class implementing a generic swarm agent, without any logic associated to it.
   """
 
-  def __init__(self, init_position: np.ndarray, init_velocity: np.ndarray, size: float, acc_limit: float, id: str) -> None:
+  def __init__(self, init_position: np.ndarray, init_velocity: np.ndarray, size: float, acc_limit: float, id: str, perception_distance: float) -> None:
     """
     Initializes the agent with the initial position, velocity, size, and acc_limit
     """
@@ -31,10 +50,20 @@ class Agent:
     self.size: float = size
     self.acc_limit: float = acc_limit
     self.id = id
+    self.perception_distance: float = perception_distance
 
 
   def process(self, current_tick: int, delta_time: float, agent_perception: AgentPerception):
-    pass
+    """
+    Processes the agent
+    """
+
+    # compute the velocity based on the implemented algorithm
+    self._compute_velocity(current_tick, delta_time, agent_perception)
+
+    self.position += self.velocity * delta_time
+
+
 
 
   def _compute_velocity(self, current_tick: int, delta_time: float, agent_perception: AgentPerception):
@@ -42,6 +71,8 @@ class Agent:
     Abstract method intended to compute the instant velocity of the swarm agent.
     It needs to be overriden in order to implement a strategy for the agents.
     """
+
+    pass
 
   
   def get_position(self) -> np.ndarray:
@@ -56,6 +87,9 @@ class Agent:
 
   def get_id(self) -> np.ndarray:
     return self.id
+
+  def get_perception_distance(self) -> float:
+    return self.perception_distance
 
 
   def _apply_velocity(self, target_velocity: np.ndarray) -> None:
@@ -72,6 +106,21 @@ class Agent:
   
   def __repr__(self) -> str:
       return f'Agent(position: {list(self.position)}, velocity: {list(self.velocity)}, size: {self.size}, acc limit: {self.acc_limit}, id: {self.id})'
+  
+  def to_summary(self) -> dict:
+    """
+    Returns a dictionary representation summerizing the relevant data that defines the agent at this given moment.
+    """
+
+    return {
+      'position': list(self.position),
+      'velocity': list(self.velocity),
+      'size': self.size,
+      'acc limit': self.acc_limit,
+      'id': self.id
+    }
+
+
 
 
 

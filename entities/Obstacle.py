@@ -1,7 +1,5 @@
 import numpy as np
 
-from entities.Agent import Agent
-
 
 class Obstacle:
   """
@@ -25,7 +23,7 @@ class Obstacle:
     """
     return self.radius
 
-  def is_in_collision_with(self, agent: Agent) -> bool:
+  def is_in_collision_with(self, agent) -> bool:
     """
     Returns true if the obstacle is in collision with the agent.
     """
@@ -36,3 +34,13 @@ class Obstacle:
     center_dist = np.linalg.norm(agent_position - self.position)
 
     return center_dist < self.radius + agent_radius
+  
+  def to_summary(self) -> dict:
+    """
+    Returns a python dictionary representation of the obstacle.
+    """
+
+    return {
+      'position': list(self.position),
+      'radius': self.radius
+    }
