@@ -26,7 +26,7 @@
       listUi.innerHTML = ''
 
       simulation_data.simulations.forEach(sim => {
-          const list_item = `<li>${sim} - <a href='/vis/${sim}'>Visualize</a></li>\n`
+          const list_item = `<li>${sim} <div class="vis-link"><a href='/vis/${sim}'>Visualize</a></div></li>\n`
           listUi.innerHTML += list_item
       });
 
@@ -44,6 +44,11 @@
   </script>
 
   <style>
+
+    .vis-link {
+      text-align: right;
+    }
+    
     ol.gradient-list > li::before, ol.gradient-list > li {
       box-shadow: 0.25rem 0.25rem 0.6rem rgba(0, 0, 0, 0.05), 0 0.5rem 1.125rem rgba(75, 0, 0, 0.05);
     }
