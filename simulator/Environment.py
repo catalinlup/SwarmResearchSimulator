@@ -20,6 +20,8 @@ class Environment:
     """
     self.swarm_agents = swarm_agents
 
+    self.initial_num_agents = len(self.swarm_agents)
+
     # functions used to generate projectiles based on tick
     self.projectile_generator = projectile_generator
     self.projectiles = projectile_generator(-1)
@@ -82,7 +84,8 @@ class Environment:
 
     
     # remove the projectiles that are no longer active
-    filtered_projectiles = list(filter(lambda p: p.is_active()), self.projectiles)
+    filtered_projectiles = list(
+        filter(lambda p: p.is_active(),  self.projectiles))
     self.projectiles = filtered_projectiles
   
 
@@ -91,7 +94,7 @@ class Environment:
     Process the movement of all objects (swarm agents and projectiles) in the environment.
     """
     self._process_swarm_movement(current_tick)
-    self._process_projectile_movement(self, current_tick)
+    self._process_projectile_movement(current_tick)
 
 
   def _has_collided_with_obstacles(self, agent: Agent) -> bool:
@@ -180,6 +183,27 @@ class Environment:
     self._process_target_area(current_tick)
     self._process_simulation_status()
 
+
+  def get_results(self) -> dict:
+    """
+    Return the results of the simulation. If the simulation is not yet finished, return an empty dictionary
+    """
+
+    if not self.is_simulation_finished():
+      return {}
+    
+    return {
+      'num_agents': self.initial_num_agents,
+      'num_agents_that_reached_targets': self.num_agents_that_reached_target_area,
+      'delta_time_target': self.last_agent_reaches_objective_timestamp - self.first_agent_reaches_objective_timestamp,
+      'total_time': (self.last_tick + 1) * self.delta_time
+    }
+
+  def is_simulation_finished(self) -> bool:
+    """
+    Return true if the simulation was finished, false otherwise.
+    """
+    return self.simulation_finished
   
   def to_summary(self) -> dict:
     """

@@ -41,7 +41,7 @@ class Agent:
   Abstract class implementing a generic swarm agent, without any logic associated to it.
   """
 
-  def __init__(self, init_position: np.ndarray, init_velocity: np.ndarray, size: float, acc_limit: float, id: str, perception_distance: float) -> None:
+  def __init__(self, init_position: np.ndarray, init_velocity: np.ndarray, size: float, acc_limit: float, id: str, perception_distance: float, swarm_distance: float) -> None:
     """
     Initializes the agent with the initial position, velocity, size, and acc_limit
     """
@@ -51,6 +51,7 @@ class Agent:
     self.acc_limit: float = acc_limit
     self.id = id
     self.perception_distance: float = perception_distance
+    self.swarm_distance = swarm_distance
 
 
   def process(self, current_tick: int, delta_time: float, agent_perception: AgentPerception):
@@ -117,6 +118,8 @@ class Agent:
       'velocity': list(self.velocity),
       'size': self.size,
       'acc limit': self.acc_limit,
+      'perception_distance': self.perception_distance,
+      'swarm_distance': self.swarm_distance,
       'id': self.id
     }
 

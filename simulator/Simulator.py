@@ -11,14 +11,15 @@ class Simulator:
     """
     Initializes a simulator using the provided configuration.
     """
+    
     self.configuration = configuration
 
+    self.last_result = {}
 
-  
 
   def run(self):
     """
-    Generator function that runs the simulation, yielding a summary of the environment each tick.
+    Generator function that runs the simulation, yielding the environment each tick.
     """
 
     # build the initial environment
@@ -32,7 +33,22 @@ class Simulator:
     # run the simulation for the provided number of ticks
     for tick in range(max_ticks):
       env.process(tick)
-
       yield env.to_summary()
+
+      if env.is_simulation_finished():
+        break
+    
+    self.last_result = env.get_results()
+  
+
+  def get_last_result(self):
+    """
+    Return the last result of the simulation.
+    If the simulation wasn't run at least once, it returns an empty object.
+    """
+
+    return self.last_result
+  
+
 
 

@@ -15,12 +15,12 @@
     "agent_acc_limit": 1,
     "agent_perception_distance": 3,
     "num_agents": 7,
-    "agent_generator_name": "basic"
+    "agent_generator_name": "basic_vel"
   },
 
   "obstacle": {
-    "obstacle_min_size": 4,
-    "obstacle_max_size": 10,
+    "obstacle_min_size": 1,
+    "obstacle_max_size": 2,
     "num_obstacles": 20,
     "obstacle_generator_name": "basic"
   },
@@ -33,6 +33,6 @@
 
   "target_area": {
     "position": [20, 25],
-    "size": 20
+    "size": 4
   }
 }

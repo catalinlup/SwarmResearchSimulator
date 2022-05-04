@@ -21,7 +21,27 @@ def basic_agent_generator(swarm_distance: float, map_structure: MapStructure, ag
     x_pos = np.random.uniform(min_pos_x, max_pos_x)
     y_pos = np.random.uniform(min_pos_y, max_pos_y)
 
-    agents.append(Agent(np.array([x_pos, y_pos]), np.zeros(2), agent_size, agent_acc_limit, f'agent_{i + 1}', agent_perception_distance))
+    agents.append(Agent(np.array([x_pos, y_pos]), np.zeros(2), agent_size, agent_acc_limit, f'agent_{i + 1}', agent_perception_distance, swarm_distance))
+
+  return agents
+
+
+def basic_with_velocity_agent_generator(swarm_distance: float, map_structure: MapStructure, agent_size: float, agent_acc_limit: float, agent_perception_distance: float, num_agents: int):
+  agents = []
+
+  padding = 2 * agent_size
+
+  min_pos_y = 0 + padding
+  max_pos_y = map_structure.get_map_height() - padding
+  min_pos_x = map_structure.get_danger_area_width() + padding
+  max_pos_x = map_structure.get_danger_area_width(
+  ) + map_structure.get_safe_area_width() - padding
+
+  for i in range(num_agents):
+    x_pos = np.random.uniform(min_pos_x, max_pos_x)
+    y_pos = np.random.uniform(min_pos_y, max_pos_y)
+
+    agents.append(Agent(np.array([x_pos, y_pos]), np.array([-1.0, 0.0]), agent_size, agent_acc_limit, f'agent_{i + 1}', agent_perception_distance, swarm_distance))
 
   return agents
 
@@ -33,5 +53,8 @@ def retrieve_agent_generator(generator_name: str):
 
   if generator_name == 'basic':
     return basic_agent_generator
+  
+  if generator_name == 'basic_vel':
+    return basic_with_velocity_agent_generator
 
   return lambda x, y: []
