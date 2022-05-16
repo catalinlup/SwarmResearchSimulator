@@ -47,6 +47,7 @@ class Agent:
     """
     self.position: np.ndarray = init_position
     self.velocity: np.ndarray = init_velocity
+    self.acceleration: np.ndarray = 0
     self.size: float = size
     self.acc_limit: float = acc_limit
     self.id = id
@@ -61,7 +62,9 @@ class Agent:
 
     # compute the velocity based on the implemented algorithm
     self._compute_velocity(current_tick, delta_time, agent_perception)
+    self._compute_acceleration(current_tick, delta_time, agent_perception)
 
+    self.velocity += self.acceleration * delta_time
     self.position += self.velocity * delta_time
 
 
@@ -71,6 +74,14 @@ class Agent:
     """
     Abstract method intended to compute the instant velocity of the swarm agent.
     It needs to be overriden in order to implement a strategy for the agents.
+    """
+
+    pass
+
+  def _compute_acceleration(self, current_tick: int, delta_time: float, agent_perception: AgentPerception):
+    """
+    Abstract method used to compute the instant acceleration of the swarm agent.
+    It needs to be overriden in order to
     """
 
     pass
