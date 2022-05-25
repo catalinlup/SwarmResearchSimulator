@@ -19,7 +19,7 @@ class SimulatorConfiguration:
   Class encoding configuration data for the simulator.
   """
 
-  def __init__(self, agent_generator, projectile_generator, obstacle_generator, target_area: TargetArea, map_structure: MapStructure, delta_time: float, max_ticks: int, swarm_distance: float, target_delta_time: float, agent_size: float, agent_acc_limit: float, agent_perception_distance: float, num_agents: int, obstacle_min_size: float, obstacle_max_size: float, num_obstacles: int, projectile_size: float, num_projectiles: int) -> None:
+  def __init__(self, agent_generator, projectile_generator, obstacle_generator, target_area: TargetArea, map_structure: MapStructure, delta_time: float, max_ticks: int, agent_swarm_distance: float, projectile_swarm_distance: float, target_delta_time: float, agent_size: float, agent_acc_limit: float, agent_perception_distance: float, num_agents: int, obstacle_min_size: float, obstacle_max_size: float, num_obstacles: int, projectile_size: float, projectile_acc_limit: float, projectile_perception_distance: float, num_projectiles: int) -> None:
     """
     Initializes the simulator configuration
 
@@ -39,7 +39,7 @@ class SimulatorConfiguration:
     self.map_structure = map_structure
     self.delta_time = delta_time
     self.max_ticks = max_ticks
-    self.swarm_distance = swarm_distance
+    self.agent_swarm_distance = agent_swarm_distance
     self.target_delta_time = target_delta_time
 
     self.agent_generator = agent_generator
@@ -53,6 +53,9 @@ class SimulatorConfiguration:
     self.obstacle_max_size = obstacle_max_size
     self.num_obstacles = num_obstacles
 
+    self.projectile_swarm_distance = projectile_swarm_distance
+    self.projectile_acc_limit = projectile_acc_limit
+    self.projectile_perception_distance = projectile_perception_distance
     self.projectile_generator = projectile_generator
     self.projectile_size = projectile_size
     self.num_projectiles = num_projectiles
@@ -93,6 +96,7 @@ class SimulatorConfiguration:
       configuration_dictionary['delta_time'],
       configuration_dictionary['max_ticks'],
       configuration_dictionary['agent']['swarm_distance'],
+      configuration_dictionary['projectile']['swarm_distance'],
       configuration_dictionary['target_delta_time'],
       configuration_dictionary['agent']['agent_size'],
       configuration_dictionary['agent']['agent_acc_limit'],
@@ -102,6 +106,8 @@ class SimulatorConfiguration:
       configuration_dictionary['obstacle']['obstacle_max_size'],
       configuration_dictionary['obstacle']['num_obstacles'],
       configuration_dictionary['projectile']['projectile_size'],
+      configuration_dictionary['projectile']['projectile_acc_limit'],
+      configuration_dictionary['projectile']['projectile_perception_distance'],
       configuration_dictionary['projectile']['num_projectiles']
     )
 
@@ -119,8 +125,8 @@ class SimulatorConfiguration:
     """
 
     return Environment(
-      self.agent_generator(self.swarm_distance, self.map_structure, self.agent_size, self.agent_acc_limit, self.agent_perception_distance, self.num_agents),
-      lambda current_tick: self.projectile_generator(current_tick, self.map_structure, self.projectile_size, self.num_projectiles),
+      self.agent_generator(self.agent_swarm_distance, self.map_structure, self.agent_size, self.agent_acc_limit, self.agent_perception_distance, self.num_agents),
+      lambda : self.projectile_generator(self.projectile_swarm_distance, self.map_structure, self.projectile_size, self.projectile_acc_limit, self.projectile_perception_distance,  self.num_projectiles),
       self.obstacle_generator(self.map_structure, self.obstacle_min_size, self.obstacle_max_size, self.num_obstacles),
       self.target_area,
       self.map_structure,

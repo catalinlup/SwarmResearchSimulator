@@ -4,12 +4,17 @@ from typing import List
 
 import numpy as np
 from entities.Agent import Agent, AgentPerception
+from navigation_planners.global_planners.AStarPlanner import AStarPlanner
+from navigation_planners.global_planners.GlobalPlanner import GlobalPlanner
+from navigation_planners.local_planners.BasicPlanner import BasicPlanner
 
 
 class DamperAgentState(Enum):
   ORGANIZING = 1,
-  MOVING_TO_TARGET = 2,
-  HITTING_TARGET = 3
+  PLANNING_PATH = 2,
+  MOVING_TO_TARGET = 3,
+  HITTING_TARGET = 4,
+  FOLLOWING_LEADER = 5,
 
 
 class DamperAgent(Agent):
@@ -20,13 +25,17 @@ class DamperAgent(Agent):
 
       self.attack_target_mode = False
       self.base_distance = 8.0
+      self.obstacle_distance = self.size
       self.k = 1.0
+      self.k_obstacle = 1.0
       self.c = 2.0
       self.mass = 10
 
       self.agent_state = DamperAgentState.ORGANIZING
 
       self.fixed_neighbors = []
+
+      self.basic_nav_planner: BasicPlanner = None
   
 
 
@@ -36,6 +45,7 @@ class DamperAgent(Agent):
     Computes the instant velocity of the swarm agent.
     """
 
+
     self.velocity = self._compute_acceleration_in_travel_mode(
         current_tick, delta_time, agent_perception)
 
@@ -43,11 +53,19 @@ class DamperAgent(Agent):
     if self.agent_state == DamperAgentState.ORGANIZING:
 
       if np.linalg.norm(self.velocity) < 0.001:
-        self.agent_state = DamperAgentState.MOVING_TO_TARGET
+        self.agent_state = DamperAgentState.PLANNING_PATH if self.id == 'agent_1' else DamperAgentState.FOLLOWING_LEADER
         self.fixed_neighbors = self._get_neighbors(self.id, len(agent_perception.get_swarm_agents()), agent_perception)
     
-    elif self.agent_state == DamperAgentState.MOVING_TO_TARGET and self.id == 'agent_1':
-      self.velocity += np.array([-0.25, 0])
+    elif self.agent_state == DamperAgentState.PLANNING_PATH:
+      global_planner = AStarPlanner(
+            agent_perception.get_obstacles(), agent_perception.get_map_structure(), 1.0, 2 * self.size)
+
+      path = global_planner.find_path(self.position, agent_perception.get_target_area().get_position())
+      self.basic_nav_planner = BasicPlanner(path, 1.0)
+      self.agent_state = DamperAgentState.MOVING_TO_TARGET
+
+    elif self.agent_state == DamperAgentState.MOVING_TO_TARGET:
+      self.velocity += 1.0 * self.basic_nav_planner.plan_movement_direction(self.position)
 
     # if self.id == 'agent_1':
     #   self.velocity += np.array([-1, 0])
@@ -64,8 +82,25 @@ class DamperAgent(Agent):
 
     self.acceleration = np.zeros(2)
 
+    # for obstacle in agent_perception.get_obstacles():
+    #   self.acceleration += self._compute_obstacle_force(self.position, obstacle.get_position())
+    
+
     # if self.id == 'agent_1':
     #   self.acceleration = np.array([-1, 0])
+
+  
+  def _compute_obstacle_force(self, position: np.ndarray, obstacle_position: np.ndarray) -> float:
+    """
+    Computes the force corresponding to the provided obstacle
+    """
+
+    distance = np.linalg.norm(position - obstacle_position)
+
+    if distance >= self.obstacle_distance:
+      return 0.0
+    
+    return (position - obstacle_position) * self.k_obstacle * (self.obstacle_distance - distance) / np.linalg.norm(position - obstacle_position)
     
     
 
@@ -76,7 +111,7 @@ class DamperAgent(Agent):
 
     neighbors_ids = self._get_neighbors(self.id, len(agent_perception.swarm_agents), agent_perception)
 
-    if self.agent_state == DamperAgentState.MOVING_TO_TARGET:
+    if self.agent_state == DamperAgentState.FOLLOWING_LEADER or self.agent_state == DamperAgentState.MOVING_TO_TARGET:
       neighbors_ids = self.fixed_neighbors
 
    
@@ -85,6 +120,12 @@ class DamperAgent(Agent):
 
     for neighbor_id in neighbors_ids:
       force += self._compute_force(self.id, neighbor_id, agent_perception.swarm_agents)
+
+    
+
+    for obstacle in agent_perception.get_obstacles():
+      force  += self._compute_obstacle_force(self.position,
+                                            obstacle.get_position())
 
 
     # only apply this to the first and the last agent

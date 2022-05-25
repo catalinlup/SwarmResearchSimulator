@@ -1,10 +1,10 @@
 
-from typing import List
+from typing import Any, List
 
 import numpy as np
 
+from entities.MapStructure import MapStructure
 from entities.Obstacle import Obstacle
-from entities.Projectile import Projectile
 from entities.TargetArea import TargetArea
 
 
@@ -13,7 +13,7 @@ class AgentPerception:
   Contains all of the objects that the agent is able to perceive.
   """
 
-  def __init__(self, obstacles: list, swarm_agents: list, target_area: TargetArea, projectiles: list) -> None:
+  def __init__(self, obstacles: list, swarm_agents: list, target_area: TargetArea, projectiles: list, map_structure: MapStructure) -> None:
     """
     Initializes an object storing the agents perception.
     """
@@ -21,6 +21,8 @@ class AgentPerception:
     self.swarm_agents: list = swarm_agents
     self.target_area: TargetArea = target_area
     self.projectiles: list = projectiles
+    self.map_structure: MapStructure = map_structure
+
 
   
   def get_obstacles(self) -> List[Obstacle]:
@@ -32,8 +34,11 @@ class AgentPerception:
   def get_target_area(self) -> TargetArea:
     return self.target_area
   
-  def get_projectiles(self) -> List[Projectile]:
+  def get_projectiles(self) -> List[Any]:
     return self.projectiles
+
+  def get_map_structure(self) -> MapStructure:
+    return self.map_structure
 
 
 class Agent:
@@ -53,6 +58,15 @@ class Agent:
     self.id = id
     self.perception_distance: float = perception_distance
     self.swarm_distance = swarm_distance
+
+  def is_in_collision_with(self, agent) -> bool:
+    """
+    Returns true if the provided agent is in collision with the current agent, false otherwise
+    """
+    return np.linalg.norm(self.position - agent.position) < self.size + agent.size
+
+
+
 
 
   def process(self, current_tick: int, delta_time: float, agent_perception: AgentPerception):

@@ -261,6 +261,23 @@ https://stackoverflow.com/questions/36986476/download-a-canvas-as-png-image -->
           drawLine(canvas_context, to_cnv_width(swarm_agent.position[0], map_structure), to_cnv_height(swarm_agent.position[1], map_structure), to_cnv_width(swarm_agent.position[0] + direction[0], map_structure), to_cnv_height(swarm_agent.position[1] + direction[1], map_structure), '#12c6c9')
       }
 
+      function draw_projectile_agent(projectile_agent, map_structure) {
+        drawCircle(canvas_context, to_cnv_width(projectile_agent.position[0], map_structure), to_cnv_height(projectile_agent.position[1], map_structure), canvas.height * projectile_agent.size / map_structure.map_height, '#fbfce8', '#fbfce8', 1.0)
+        drawCircle(canvas_context, to_cnv_width(projectile_agent.position[0], map_structure), to_cnv_height(projectile_agent.position[1], map_structure), canvas.height * projectile_agent.perception_distance / map_structure.map_height, null, '#12c6c9', 1.0)
+        drawCircle(canvas_context, to_cnv_width(projectile_agent.position[0], map_structure), to_cnv_height(projectile_agent.position[1], map_structure), canvas.height * projectile_agent.swarm_distance / map_structure.map_height, null, '#f91ddc', 1.0)
+
+
+        canvas_context.font = "15px Arial";
+        canvas_context.fillText(projectile_agent.id, to_cnv_width(projectile_agent.position[0], map_structure) - 25, to_cnv_height(projectile_agent.position[1], map_structure) - 20);
+        canvas_context.fillText(`(${Math.round(projectile_agent.position[0])}, ${Math.round(projectile_agent.position[1])})`, to_cnv_width(projectile_agent.position[0], map_structure) - 25, to_cnv_height(projectile_agent.position[1], map_structure) + 20);
+
+        // draw direction line
+        const abs_speed = Math.sqrt(projectile_agent.velocity[0] * projectile_agent.velocity[0] + projectile_agent.velocity[1] * projectile_agent.velocity[1])
+        direction = [2 * projectile_agent.velocity[0] / abs_speed, 2 * projectile_agent.velocity[1] / abs_speed]
+
+        drawLine(canvas_context, to_cnv_width(projectile_agent.position[0], map_structure), to_cnv_height(projectile_agent.position[1], map_structure), to_cnv_width(projectile_agent.position[0] + direction[0], map_structure), to_cnv_height(projectile_agent.position[1] + direction[1], map_structure), '#12c6c9')
+      }
+
       /**
        * Function that draws one instance of the environment
        **/
@@ -277,6 +294,8 @@ https://stackoverflow.com/questions/36986476/download-a-canvas-as-png-image -->
         draw_target_area(env_structure.target_area, env_structure.map_structure)
         env_structure.obstacles.forEach(obst => draw_obstacle(obst, env_structure.map_structure))
         env_structure.swarm_agents.forEach(agent => draw_swarm_agent(agent, env_structure.map_structure))
+        console.log(env_structure.projectiles)
+        env_structure.projectiles.forEach(agent => draw_projectile_agent(agent, env_structure.map_structure))
       }
 
 

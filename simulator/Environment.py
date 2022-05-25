@@ -5,7 +5,6 @@ import numpy as np
 from entities.Agent import Agent, AgentPerception
 from entities.MapStructure import MapStructure
 from entities.Obstacle import Obstacle
-from entities.Projectile import Projectile
 from entities.TargetArea import TargetArea
 
 
@@ -23,8 +22,9 @@ class Environment:
     self.initial_num_agents = len(self.swarm_agents)
 
     # functions used to generate projectiles based on tick
+    print(projectile_generator)
     self.projectile_generator = projectile_generator
-    self.projectiles = projectile_generator(-1)
+    self.projectiles = self.projectile_generator()
     self.obstacles = obtsacles
     self.target_area = target_area
     self.delta_time = delta_time
@@ -67,7 +67,7 @@ class Environment:
       perceived_projectiles = filter_projectiles_within_distance(swarm_agent.get_position(), swarm_agent.get_perception_distance())
 
       agent_perception = AgentPerception(
-          self.obstacles, perceived_agents, self.target_area, perceived_projectiles)
+          self.obstacles, perceived_agents, self.target_area, perceived_projectiles, self.map_structure)
 
       swarm_agent.process(current_tick, self.delta_time, agent_perception)
 
@@ -79,14 +79,14 @@ class Environment:
 
     perceived_agents = deepcopy(self.swarm_agents)
 
-    for projectile in self.projectiles:
-      projectile.process(current_tick, self.delta_time, perceived_agents)
+    perceived_projectiles = deepcopy(self.projectiles)
 
-    
-    # remove the projectiles that are no longer active
-    filtered_projectiles = list(
-        filter(lambda p: p.is_active(),  self.projectiles))
-    self.projectiles = filtered_projectiles
+    for projectile in self.projectiles:
+
+      agent_perception = AgentPerception(
+          self.obstacles, perceived_agents, self.target_area, perceived_projectiles, self.map_structure)
+
+      projectile.process(current_tick, self.delta_time, agent_perception)
   
 
   def _process_movement(self, current_tick: int):
@@ -108,14 +108,13 @@ class Environment:
     
     return False
 
-  
-  def _has_collided_with_projectiles(self, agent: Agent) -> bool:
+  def _has_collided_with_any(self, agent: Agent, agent_list: List[Agent]) -> bool:
     """
-    Returns true if the provided agent has collided with some obstacles, false otherwise
+    Returns true if the provided agent has collided with any agents in the list.
     """
 
-    for projectile in self.projectiles:
-      if projectile.is_in_collision_with(agent):
+    for other_agent in agent_list:
+      if agent.is_in_collision_with(other_agent):
         return True
     
     return False
@@ -125,13 +124,16 @@ class Environment:
     Removes the agents that have collided with some obstacles
     """
 
-    alive_agents = []
+    alive_swarm_agents = list(filter(lambda agent: not self._has_collided_with_obstacles(agent), self.swarm_agents))
+    alive_projectiles = list(filter(lambda agent: not self._has_collided_with_obstacles(agent), self.projectiles))
 
-    for swarm_agent in self.swarm_agents:
-      if not self._has_collided_with_obstacles(swarm_agent) and not self._has_collided_with_projectiles(swarm_agent):
-        alive_agents.append(swarm_agent)
-    
-    self.swarm_agents = alive_agents
+    final_alive_swarm_agents = list(filter(lambda agent: not self._has_collided_with_any(agent, alive_projectiles), alive_swarm_agents))
+    final_alive_projectiles = list(filter(lambda agent: not self._has_collided_with_any(agent, alive_swarm_agents), alive_projectiles))
+
+    self.swarm_agents = final_alive_swarm_agents
+    self.projectiles = final_alive_projectiles
+
+
   
 
   def _process_target_area(self, current_tick: int) -> None:
@@ -176,7 +178,7 @@ class Environment:
     self.last_tick = current_tick
 
     # generate new projectiles
-    self.projectiles += self.projectile_generator(self.last_tick)
+    # self.projectiles += self.projectile_generator()
 
     self._process_movement(current_tick)
     self._process_collision()

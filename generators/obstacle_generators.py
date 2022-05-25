@@ -30,6 +30,14 @@ def basic_obstacle_generator(map_structure: MapStructure, obstacle_min_size: flo
   return obstacles
 
 
+def none_obstacle_generator(map_structure: MapStructure, obstacle_min_size: float, obstacle_max_size: float, num_obstacles: int):
+  """
+  Generates obstacles obstacles in the danger area.
+  """
+
+  return []
+
+
 
 def retrieve_obstacle_generator(generator_name: str):
   """
@@ -38,5 +46,8 @@ def retrieve_obstacle_generator(generator_name: str):
 
   if generator_name == 'basic':
     return basic_obstacle_generator
+  
+  if generator_name == 'none':
+    return none_obstacle_generator
 
   return lambda x: []
