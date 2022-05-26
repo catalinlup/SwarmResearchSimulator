@@ -1,5 +1,5 @@
 SAVED_SIMULATION_PATH = 'output/saved_simulations/'
 SIMULATION_RESULT_PATH = 'output/simulation_results/'
-EXPERIMENT_RESULTS_PATH = '/output/experiment_results/'
+EXPERIMENT_RESULTS_PATH = 'output/experiment_results/'
 PLOT_PATH = 'output/plots/'
 EXPERIMENT_CONFIG_PATH = 'experiment_configs/'

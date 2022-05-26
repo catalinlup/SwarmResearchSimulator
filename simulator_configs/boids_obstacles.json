@@ -22,9 +22,12 @@
     "obstacle_generator_name": "basic"
   },
   "projectile": {
+    "swarm_distance": 3,
     "projectile_size": 0.25,
+    "projectile_acc_limit": 1,
+    "projectile_perception_distance": 5,
     "num_projectiles": 0,
-    "projectile_generator_name": "basic"
+    "projectile_generator_name": "boids"
   },
   "target_area": {
     "position": [

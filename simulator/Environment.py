@@ -22,7 +22,6 @@ class Environment:
     self.initial_num_agents = len(self.swarm_agents)
 
     # functions used to generate projectiles based on tick
-    print(projectile_generator)
     self.projectile_generator = projectile_generator
     self.projectiles = self.projectile_generator()
     self.obstacles = obtsacles

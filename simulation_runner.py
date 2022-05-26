@@ -6,9 +6,12 @@ import argparse
 import json
 import os
 import sys
+from curses import resetty
 from datetime import datetime
 
+import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 from NpEncoder import NpEncoder
 from paths import *
@@ -69,46 +72,89 @@ def save_experiment_results(name: str, results):
 
 
 
-def run_experiment(experiment_config: dict):
+def plot_experiment_results(name: str, results: dict):
+  """
+  Creates a histogram of the results of the experiment.
+  """
+  avg_success = np.array(results['avg_agent_success'])
+  avg_time = np.array(results['avg_time'])
+  avg_delta_time = np.array(results['avg_delta_time'])
+
+  delta_text = 0.05
+
+  fig, ax = plt.subplots(3, 1)
+  fig.tight_layout(h_pad=2)
+  ax[0].bar(results['names'], avg_success, fc='#7bc5f7', ec='#1f3e54')
+  ax[0].set_title('Success Rate')
+  ax[0].text(0 - delta_text, avg_success[0] / 2, str(round(avg_success[0], 2)))
+  ax[0].text(1 - delta_text, avg_success[1] / 2, str(round(avg_success[1], 2)))
+
+  ax[1].bar(results['names'], avg_time, fc='#f0a0f7', ec='#82178c')
+  ax[1].set_title('Average Time')
+  ax[1].text(0 - delta_text, avg_time[0] / 2, str(round(avg_time[0], 2)))
+  ax[1].text(1 - delta_text, avg_time[1] / 2, str(round(avg_time[1], 2)))
+
+  ax[2].bar(results['names'], avg_delta_time, fc='#f97a7c', ec='#ea0003')
+  ax[2].set_title('Average Impact Time')
+  ax[2].text(0 - delta_text, avg_delta_time[0] /
+             2, str(round(avg_delta_time[0], 2)))
+  ax[2].text(1 - delta_text, avg_delta_time[1] /
+             2, str(round(avg_delta_time[1], 2)))
+
+  fig.suptitle(
+      f'Experiment "{name}", results averaged over {results["num_repetitions"]} trials')
+
+
+  plt.subplots_adjust(top=0.85)
+
+  # fig.canvas.set_window_title(
+  #     f'Experiment {name}, results averaged over {results["num_repetitions"]}')
+
+  plt.savefig(os.path.join(PLOT_PATH, f'{name}.png'))
+
+def run_experiment(experiment_name: str, experiment_config_file: str):
   """
   Runs an experiment involving averaging multiple simulations
   """
 
+  experiment_config = json.load(open(os.path.join(EXPERIMENT_CONFIG_PATH, experiment_config_file), 'r'))
+
   final_result = {
-    'name': experiment_config['experiment_name'],
+    'name': experiment_name,
     'timestamp': get_current_timestamp(),
     'config_files': experiment_config['simulation_config_files'],
     'names': [remove_extension(file) for file in experiment_config['simulation_config_files']],
-    'num_repetitions': experiment_config.num_repetitions,
+    'num_repetitions': experiment_config['num_repetitions'],
     'avg_agent_success': [],
     'avg_time': [],
     'avg_delta_time': []
   }
 
-  avg_agent_success_histogram = np.zeros(
-      len(experiment_config['simulation_config_files']))
-  avg_time_histogram = np.zeros(
-      len(experiment_config['simulation_config_files']))
-  avg_delta_time = np.zeros(
-      len(experiment_config['simulation_config_files']))
+  num_configuration_files = len(experiment_config['simulation_config_files'])
+
+  # initialize the histograms
+  avg_agent_success_histogram = np.zeros(num_configuration_files)
+  avg_time_histogram = np.zeros(num_configuration_files)
+  avg_delta_time = np.zeros(num_configuration_files)
 
 
-
-  for sim_config_index, simulation_config in enumerate(experiment_config['simulation_config_files']):
+  for (sim_config_index, simulation_config), _ in zip(enumerate(experiment_config['simulation_config_files']), tqdm(range(0, 100), total=num_configuration_files, desc="Overall progress")):
     name = remove_extension(simulation_config)
 
     num_repetitions = experiment_config['num_repetitions']
 
     # add the results from the simulations
-    for index in range(1,  num_repetitions + 1):
-      simulation_output, simulation_envs = run_simulation(name + '_' + str(index), simulation_config)
+    for index, _ in zip(range(1,  num_repetitions + 1), tqdm(range(0, 100), total=num_repetitions, desc='Simulation Batch Progress')):
+      simulation_output, simulation_envs = run_simulation(experiment_name + "_" + name + '_' + str(index), simulation_config)
 
       if index in experiment_config['saved_repetitions']:
-        save_simulation_envs(name + "_" + str(index), simulation_envs)
+        save_simulation_envs(experiment_name + "_" + name +
+                             '_' + str(index), simulation_envs)
       
 
       # update the histograms
-      avg_agent_success_histogram[sim_config_index] += (float(simulation_output['result']['num_agents_reached_target']) / float(simulation_output['result']['num_agents']))
+      avg_agent_success_histogram[sim_config_index] += (float(
+          simulation_output['result']['num_agents_that_reached_targets']) / float(simulation_output['result']['num_agents']))
       avg_time_histogram[sim_config_index] += float(simulation_output['result']['total_time'])
       avg_delta_time[sim_config_index] += float(
           simulation_output['result']['delta_time_target'])
@@ -121,7 +167,7 @@ def run_experiment(experiment_config: dict):
 
   # update the final results with the value of the histograms
   final_result['avg_agent_success'] = list(avg_agent_success_histogram)
-  final_result['avg_time_histogram'] = list(avg_time_histogram)
+  final_result['avg_time'] = list(avg_time_histogram)
   final_result['avg_delta_time'] = list(avg_delta_time)
 
   return final_result
