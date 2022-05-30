@@ -6,8 +6,8 @@ import numpy as np
 from entities.Agent import Agent
 from entities.MapStructure import MapStructure
 from projectiles.boid_projectile import BoidsProjectile
-from swarm_agents.damper_agent.boids_agent import BoidsAgent
-from swarm_agents.damper_agent.damper_agent import DamperAgent
+from swarm_agents.boids_agent import BoidsAgent
+from swarm_agents.damper_agent import DamperAgent
 
 
 def boids_projectile_generator(swarm_distance: float, map_structure: MapStructure, agent_size: float, agent_acc_limit: float, agent_perception_distance: float, num_agents: int):

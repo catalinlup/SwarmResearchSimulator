@@ -41,6 +41,39 @@ class AgentPerception:
     return self.map_structure
 
 
+
+class AgentMessage:
+  """
+  Encodes an message to be sent from an agent to another agent.
+  """
+
+  def __init__(self, id: str, sender_id: str, content: str='') -> None:
+    """
+    Initializes and agent message.
+    """
+    self.id = id
+    self.sender_id = sender_id
+    self.content = content
+
+  def get_id(self):
+    """
+    Returns the id of the message
+    """
+    return self.id
+  
+  def get_sender_id(self):
+    """
+    Returns the id of the sender.
+    """
+    return self.sender_id
+
+  def get_content(self):
+    """
+    Returns the conent of the agent message.
+    """
+    return self.content
+
+
 class Agent:
   """
   Abstract class implementing a generic swarm agent, without any logic associated to it.
@@ -58,6 +91,8 @@ class Agent:
     self.id = id
     self.perception_distance: float = perception_distance
     self.swarm_distance = swarm_distance
+    
+    self.received_messages: List[str] = []
 
   def is_in_collision_with(self, agent) -> bool:
     """
@@ -66,13 +101,28 @@ class Agent:
     return np.linalg.norm(self.position - agent.position) < self.size + agent.size
 
 
+  def _on_message_received(self, message: AgentMessage, current_tick: int, delta_time: float, perception: AgentPerception):
+    """
+    Processes the received message.
+    """
+    pass
 
+  def process_message(self, message: AgentMessage):
+    """
+    Call this function to make the agent process a new message
+    """
+    self.received_messages.append(message)
 
 
   def process(self, current_tick: int, delta_time: float, agent_perception: AgentPerception):
     """
     Processes the agent
     """
+
+    # process the received messages
+    if len(self.received_messages) > 0:
+      self._on_message_received(self.received_messages[0], current_tick, delta_time, agent_perception)
+      del self.received_messages[0]
 
     # compute the velocity based on the implemented algorithm
     self._compute_velocity(current_tick, delta_time, agent_perception)
