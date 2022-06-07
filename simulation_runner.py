@@ -17,6 +17,7 @@ from NpEncoder import NpEncoder
 from paths import *
 from simulator.Simulator import Simulator
 from simulator.SimulatorConfiguration import SimulatorConfiguration
+from swarm_agents.neural_network_boids import BoidNet
 
 
 def remove_extension(filename: str) -> str:
@@ -112,7 +113,7 @@ def plot_experiment_results(name: str, results: dict):
 
   plt.savefig(os.path.join(PLOT_PATH, f'{name}.png'))
 
-def run_experiment(experiment_name: str, experiment_config_file: str):
+def run_experiment(experiment_name: str, experiment_config_file: str, boid_net: BoidNet = None):
   """
   Runs an experiment involving averaging multiple simulations
   """
@@ -145,7 +146,7 @@ def run_experiment(experiment_name: str, experiment_config_file: str):
 
     # add the results from the simulations
     for index, _ in zip(range(1,  num_repetitions + 1), tqdm(range(0, 100), total=num_repetitions, desc='Simulation Batch Progress')):
-      simulation_output, simulation_envs = run_simulation(experiment_name + "_" + name + '_' + str(index), simulation_config)
+      simulation_output, simulation_envs = run_simulation(experiment_name + "_" + name + '_' + str(index), simulation_config, boid_net)
 
       if index in experiment_config['saved_repetitions']:
         save_simulation_envs(experiment_name + "_" + name +
@@ -175,7 +176,7 @@ def run_experiment(experiment_name: str, experiment_config_file: str):
     
 
 
-def run_simulation(sim_name: str, config_file_name_json: str):
+def run_simulation(sim_name: str, config_file_name_json: str, boid_net: BoidNet = None):
   """
   Function used to run one instance of a simulation.
 
@@ -185,7 +186,7 @@ def run_simulation(sim_name: str, config_file_name_json: str):
 
   current_timestamp = get_current_timestamp()
 
-  config = SimulatorConfiguration.build_configuration_from_file(config_file_name_json)
+  config = SimulatorConfiguration.build_configuration_from_file(config_file_name_json, boid_net)
 
   simulator = Simulator(config)
 

@@ -127,8 +127,7 @@ class BoidsAgent(Agent):
     neighbor_obstacles: List[Obstacle] = self._get_nearby_obstacles(self.id, agent_perception, self.swarm_distance)
 
     for obstacle in neighbor_obstacles:
-      move_direction += (self.position - obstacle.get_position()) * (
-          1.0 + obstacle.get_radius() / np.linalg.norm(self.position - obstacle.get_position()))
+      move_direction += (self.position - obstacle.get_position()) * (1.0 + obstacle.get_radius() / np.linalg.norm(self.position - obstacle.get_position()))
     
 
     return move_direction * self.obstacle_steer_factor

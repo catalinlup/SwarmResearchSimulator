@@ -10,6 +10,7 @@ from entities.TargetArea import TargetArea
 from generators.agent_generators import retrieve_agent_generator
 from generators.obstacle_generators import retrieve_obstacle_generator
 from generators.projectile_generators import retrieve_projectile_generator
+from swarm_agents.neural_network_boids import BoidNet
 
 from simulator.Environment import Environment
 
@@ -62,33 +63,35 @@ class SimulatorConfiguration:
 
 
   @staticmethod
-  def build_configuration_from_file(filename: str):
+  def build_configuration_from_file(filename: str, boid_net: BoidNet = None):
     """
     Static methods that initializes a simulator configuration, based on the contants of the provided file
     """
 
     with open(f'simulator_configs/{filename}', 'r') as f:
       json_contents = '\n'.join(f.readlines())
-      return SimulatorConfiguration.build_configuration_from_json_string(json_contents)
+      return SimulatorConfiguration.build_configuration_from_json_string(json_contents, boid_net)
 
   @staticmethod
-  def build_configuration_from_json_string(configuration_json: str):
+  def build_configuration_from_json_string(configuration_json: str, boid_net: BoidNet = None):
     """
     Instantiated a simulator configuration object, based on the provided json string.
     """
 
     configuration_dictionary = json.loads(configuration_json)
-    return SimulatorConfiguration.build_configuration_from_dictionary(configuration_dictionary)
+    return SimulatorConfiguration.build_configuration_from_dictionary(configuration_dictionary, boid_net)
 
 
 
   @staticmethod
-  def build_configuration_from_dictionary(configuration_dictionary: dict):
+  def build_configuration_from_dictionary(configuration_dictionary: dict, boid_net: BoidNet = None):
     """
     Instantiates a simulator configuration object, based on the provided dictionary.
+
+    Pass the boid net if you are instantiating a neural network boid.
     """
     return SimulatorConfiguration(
-      retrieve_agent_generator(configuration_dictionary['agent']['agent_generator_name']),
+      retrieve_agent_generator(configuration_dictionary['agent']['agent_generator_name'], boid_net),
       retrieve_projectile_generator(configuration_dictionary['projectile']['projectile_generator_name']),
       retrieve_obstacle_generator(configuration_dictionary['obstacle']['obstacle_generator_name']),
       TargetArea(np.array(configuration_dictionary['target_area']['position']), configuration_dictionary['target_area']['size']),

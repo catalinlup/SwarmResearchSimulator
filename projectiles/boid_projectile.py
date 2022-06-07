@@ -132,13 +132,32 @@ class BoidsProjectile(Agent):
 
     return (avg_velocity_neighbors - self.velocity) * self.match_factor
 
+  def _get_target_position(self, current_tick: int, delta_time: float, agent_perception: AgentPerception):
+    """
+    Return the position of the target (i.e. the center of the target swarm).
+    """
+
+    target_agents = agent_perception.get_swarm_agents()
+    target_position = sum(map(lambda a: a.get_position(),
+                          target_agents)) / len(target_agents)
+    return target_position
+  
+  def _get_line_of_sight_direction(self, current_tick: int, delta_time: float, agent_perception: AgentPerception):
+    """
+    Return the direction of the line of sight
+    """
+
+    target_position = self._get_target_position(current_tick, delta_time, agent_perception)
+
+    return (target_position - self.get_position()) / np.linalg.norm(target_position - self.get_position())
+
+
   def _compute_steering_velocity(self, current_tick: int, delta_time: float, agent_perception: AgentPerception):
     """
     Compute the steering velocity of the boids
     """
 
-    target_agents = agent_perception.get_swarm_agents()
-    target_position = sum(map(lambda a: a.get_position(), target_agents)) / len(target_agents)
+    target_position = self._get_target_position(current_tick, delta_time, agent_perception)
 
     return (target_position - self.position) * self.steer_factor
 
