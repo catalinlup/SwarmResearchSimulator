@@ -118,13 +118,23 @@ class Environment:
     
     return False
 
+  def _has_projectile_collided_with_target_area(self, agent: Agent) -> bool:
+    """
+    Returns true if the agent has collided with the target area, false otherwise.
+    """
+
+    if np.linalg.norm(agent.get_position() - self.target_area.get_position()) <= self.target_area.get_size():
+      return True
+    
+    return False
+
   def _process_collision(self):
     """
     Removes the agents that have collided with some obstacles
     """
 
     alive_swarm_agents = list(filter(lambda agent: not self._has_collided_with_obstacles(agent), self.swarm_agents))
-    alive_projectiles = list(filter(lambda agent: not self._has_collided_with_obstacles(agent), self.projectiles))
+    alive_projectiles = list(filter(lambda agent: (not self._has_collided_with_obstacles(agent)) and (not self._has_projectile_collided_with_target_area(agent)), self.projectiles))
 
     final_alive_swarm_agents = list(filter(lambda agent: not self._has_collided_with_any(agent, alive_projectiles), alive_swarm_agents))
     final_alive_projectiles = list(filter(lambda agent: not self._has_collided_with_any(agent, alive_swarm_agents), alive_projectiles))

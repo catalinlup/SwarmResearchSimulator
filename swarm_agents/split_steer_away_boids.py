@@ -61,7 +61,6 @@ class SplitSteerAwayBoids(SteerAwayBoids):
     if num > 0:
       anti_neighbor_pos /= num
     
-    print(anti_neighbors)
 
     return (self.position - anti_neighbor_pos) * self.anti_neighbor_factor
 

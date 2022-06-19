@@ -42,6 +42,7 @@ def save(name: str, json_data: dict, path: str):
   """
   SAves the provided json_data at the specified path.
   """
+  name = name.replace('/', '_')
   with open(os.path.join(path, f'{name}.json'), 'w') as f:
     json.dump(json_data, f, cls=NpEncoder, indent=4)
 
@@ -72,35 +73,58 @@ def save_experiment_results(name: str, results):
   save(name, results, EXPERIMENT_RESULTS_PATH)
 
 
+def remove_base_path(name: str) -> str:
+  """
+  Removes the base path from the provided name
+  """
+  return name.split('/')[-1]
 
-def plot_experiment_results(name: str, results: dict):
+def remove_base_path_from_list(names: list) -> list:
+  """
+  Removes the base path from a list of names.
+  """
+  return list(map(remove_base_path, names))
+
+
+
+
+
+def plot_experiment_results(name: str, results: dict, plot_impact_time=False):
   """
   Creates a histogram of the results of the experiment.
   """
+  plt.rc('xtick', labelsize=8)
+  plt.rcParams['figure.figsize'] = [10, 8]
   avg_success = np.array(results['avg_agent_success'])
   avg_time = np.array(results['avg_time'])
   avg_delta_time = np.array(results['avg_delta_time'])
 
   delta_text = 0.05
 
-  fig, ax = plt.subplots(3, 1)
+  fig, ax = plt.subplots(3 if plot_impact_time else 2, 1)
   fig.tight_layout(h_pad=2)
-  ax[0].bar(results['names'], avg_success, fc='#7bc5f7', ec='#1f3e54')
+  ax[0].bar(remove_base_path_from_list(results['names']),
+            avg_success, fc='#7bc5f7', ec='#1f3e54')
   ax[0].set_title('Success Rate')
-  ax[0].text(0 - delta_text, avg_success[0] / 2, str(round(avg_success[0], 2)))
-  ax[0].text(1 - delta_text, avg_success[1] / 2, str(round(avg_success[1], 2)))
 
-  ax[1].bar(results['names'], avg_time, fc='#f0a0f7', ec='#82178c')
+  for i in range(len(avg_success)):
+    ax[0].text(i - delta_text, avg_success[i] / 2, str(round(avg_success[i], 2)))
+  # ax[0].text(1 - delta_text, avg_success[1] / 2, str(round(avg_success[1], 2)))
+
+  ax[1].bar(remove_base_path_from_list(results['names']),
+            avg_time, fc='#f0a0f7', ec='#82178c')
   ax[1].set_title('Average Time')
-  ax[1].text(0 - delta_text, avg_time[0] / 2, str(round(avg_time[0], 2)))
-  ax[1].text(1 - delta_text, avg_time[1] / 2, str(round(avg_time[1], 2)))
+  for i in range(len(avg_success)):
+    ax[1].text(i - delta_text, avg_time[i] / 2, str(round(avg_time[i], 2)))
 
-  ax[2].bar(results['names'], avg_delta_time, fc='#f97a7c', ec='#ea0003')
-  ax[2].set_title('Average Impact Time')
-  ax[2].text(0 - delta_text, avg_delta_time[0] /
-             2, str(round(avg_delta_time[0], 2)))
-  ax[2].text(1 - delta_text, avg_delta_time[1] /
-             2, str(round(avg_delta_time[1], 2)))
+  if plot_impact_time:
+    ax[2].bar(remove_base_path_from_list(results['names']),
+              avg_delta_time, fc='#f97a7c', ec='#ea0003')
+    ax[2].set_title('Average Impact Time')
+    ax[2].text(0 - delta_text, avg_delta_time[0] /
+              2, str(round(avg_delta_time[0], 2)))
+    ax[2].text(1 - delta_text, avg_delta_time[1] /
+              2, str(round(avg_delta_time[1], 2)))
 
   fig.suptitle(
       f'Experiment "{name}", results averaged over {results["num_repetitions"]} trials')
@@ -138,15 +162,20 @@ def run_experiment(experiment_name: str, experiment_config_file: str, boid_net: 
   avg_time_histogram = np.zeros(num_configuration_files)
   avg_delta_time = np.zeros(num_configuration_files)
 
+  # get the number of repetitions
+  num_repetitions = experiment_config['num_repetitions']
+  seeds = np.random.choice(list(range(1000)), size=num_repetitions)
+
 
   for (sim_config_index, simulation_config), _ in zip(enumerate(experiment_config['simulation_config_files']), tqdm(range(0, 100), total=num_configuration_files, desc="Overall progress")):
     name = remove_extension(simulation_config)
 
-    num_repetitions = experiment_config['num_repetitions']
+    
 
     # add the results from the simulations
-    for index, _ in zip(range(1,  num_repetitions + 1), tqdm(range(0, 100), total=num_repetitions, desc='Simulation Batch Progress')):
-      simulation_output, simulation_envs = run_simulation(experiment_name + "_" + name + '_' + str(index), simulation_config, boid_net)
+    for index, _ in zip(range(1,  num_repetitions + 1), tqdm(range(0, num_repetitions), total=num_repetitions, desc='Simulation Batch Progress')):
+      simulation_output, simulation_envs = run_simulation(
+          experiment_name + "_" + name + '_' + str(index), simulation_config, boid_net, seeds[index - 1])
 
       if index in experiment_config['saved_repetitions']:
         save_simulation_envs(experiment_name + "_" + name +
@@ -176,7 +205,7 @@ def run_experiment(experiment_name: str, experiment_config_file: str, boid_net: 
     
 
 
-def run_simulation(sim_name: str, config_file_name_json: str, boid_net: BoidNet = None):
+def run_simulation(sim_name: str, config_file_name_json: str, boid_net: BoidNet = None, seed = None):
   """
   Function used to run one instance of a simulation.
 
@@ -187,6 +216,7 @@ def run_simulation(sim_name: str, config_file_name_json: str, boid_net: BoidNet 
   current_timestamp = get_current_timestamp()
 
   config = SimulatorConfiguration.build_configuration_from_file(config_file_name_json, boid_net)
+  config.seed = seed
 
   simulator = Simulator(config)
 

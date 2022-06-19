@@ -78,6 +78,7 @@ class BoidsProjectile(Agent):
     neighbors = self._get_neighbors(self.id, agent_perception)
     num_neighbors = len(neighbors)
 
+
     for neighbor in neighbors:
       avg_position_neighbors += neighbor.get_position()
 

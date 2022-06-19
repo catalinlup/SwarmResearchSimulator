@@ -24,7 +24,9 @@ class BoidsAgent(Agent):
       self.match_factor = 0.05 # adjust velocity by this percent
       self.center_factor = 0.005 # adjust velocity by this percent
       self.steer_factor = 0.1
-      self.obstacle_steer_factor = 0.3
+      self.obstacle_steer_factor = 1.0
+
+      self.gravitational_constant = 10.0
       
 
 
@@ -127,10 +129,13 @@ class BoidsAgent(Agent):
     neighbor_obstacles: List[Obstacle] = self._get_nearby_obstacles(self.id, agent_perception, self.swarm_distance)
 
     for obstacle in neighbor_obstacles:
-      move_direction += (self.position - obstacle.get_position()) * (1.0 + obstacle.get_radius() / np.linalg.norm(self.position - obstacle.get_position()))
+      #move_direction += (self.position - obstacle.get_position()) * (1.0 + obstacle.get_radius() / np.linalg.norm(self.position - obstacle.get_position()))
+      move_direction += (self.position - obstacle.get_position()) / \
+          (np.linalg.norm(self.position - obstacle.get_position()) ** 2)
     
-
-    return move_direction * self.obstacle_steer_factor
+    # print(move_direction)
+    
+    return move_direction * self.obstacle_steer_factor * self.gravitational_constant
 
 
 

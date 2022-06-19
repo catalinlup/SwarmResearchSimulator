@@ -6,10 +6,13 @@ from entities.MapStructure import MapStructure
 from entities.Obstacle import Obstacle
 
 
-def basic_obstacle_generator(map_structure: MapStructure, obstacle_min_size: float, obstacle_max_size: float, num_obstacles: int):
+def basic_obstacle_generator(map_structure: MapStructure, obstacle_min_size: float, obstacle_max_size: float, num_obstacles: int, seed: int = None):
   """
   Generates obstacles obstacles in the danger area.
   """
+
+  if seed is not None:
+    np.random.seed(seed)
 
   min_pos_y = 0
   max_pos_y = map_structure.get_map_height()

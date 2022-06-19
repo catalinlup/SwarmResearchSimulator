@@ -24,7 +24,7 @@ class DirectedWhirlwindRepulsiveBoids(BoidsAgent):
                      acc_limit, id, perception_distance, swarm_distance)
 
     self.whirlwind_constant = 10
-    self.obstacle_steer_factor = 1.0
+    # self.obstacle_steer_factor = 1.0
 
   def _anti_clockwise_field_equation(self, position: np.ndarray) -> np.ndarray:
     return np.array([position[0] - position[1] + self.whirlwind_constant * position[0] / (position[0] ** 2 + position[1] ** 2), position[0] + position[1] + self.whirlwind_constant * position[1] / (position[0] ** 2 + position[1] ** 2)])
